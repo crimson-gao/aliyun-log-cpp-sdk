@@ -8,9 +8,6 @@ jobs:
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
       VCPKG_DIR: ${{github.workspace}}/vcpkg
       VCPKG_COMMIT: 0fa8459cf3a7caca7adc58f992bc32ff13630684
-      # Configuration type to build.
-      # You can convert this to a build matrix if you need coverage of multiple configuration types.
-      # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
       BUILD_TYPE: Release
       # Generator: Ninja
     
@@ -35,7 +32,6 @@ jobs:
       - uses: actions/checkout@v3
       - uses: lukka/get-cmake@latest
       # - uses: seanmiddleditch/gha-setup-ninja@master
-
       - name: vcpkg build
         uses: johnwason/vcpkg-action@v5
         id: vcpkg
@@ -49,21 +45,21 @@ jobs:
       - name: List $RUNNER_WORKSPACE before build
         run: find . | grep -v '\.git' | grep -v vcpkg | grep -v include
         shell: bash
-        working-directory: ${{github.workspace}}/
 
       - name: cmake configure
+        env:
+          VCPKG_CONFIG: ${{ steps.vcpkg.outputs.vcpkg-cmake-config }}
         run: |
-          echo ${{ steps.vcpkg.outputs.vcpkg-cmake-config }}
-          cmake ${{ steps.vcpkg.outputs.vcpkg-cmake-config }} `
-                -B build `
-                -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} `
-                -DBUILD_SAMPLE=ON -DBUILD_TESTS=ON `
-                -DVERBOSE=ON -DBUILD_SHARE_LIBS=ON `
-                -DPUBLISH=ON 
+          echo ${{ env.VCPKG_CONFIG }}
+          cmake ${{ env.VCPKG_CONFIG }} -B build \
+                -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+                -DBUILD_SAMPLE=ON -DBUILD_TESTS=ON \
+                -DVERBOSE=ON -DBUILD_SHARE_LIBS=ON -DPUBLISH=ON 
+        shell: bash
 
       - name: build
         run: |
-          cmake --build build --config ${{env.BUILD_TYPE}}
+          cmake --build build --clean-first --config ${{env.BUILD_TYPE}}
 
       - name: install
         run: |
@@ -99,7 +95,10 @@ jobs:
             ./aliyun-log-cpp-sdk
           outPath: ${{env.TARGET_FILE}}
 
-
+      - name: cat tar file info
+        run: |
+          ls -l ${{env.TARGET_FILE}}
+          
       - name: save as aritifact
         uses: actions/upload-artifact@v2
         with:
