@@ -56,7 +56,7 @@ jobs:
         shell: pwsh
         run: |
           echo ${{env.TOOL_CHAIN_FILE}}
-          cmake -DCMAKE_TOOLCHAIN_FILE${{env.TOOL_CHAIN_FILE}} `
+          cmake -DCMAKE_TOOLCHAIN_FILE=${{env.TOOL_CHAIN_FILE}} `
                 -DVCPKG_TARGET_TRIPLET=${{matrix.triplet}} `
                 -DVCPKG_MANIFEST_MODE=OFF `
                 -B build -DPUBLISH=ON `
