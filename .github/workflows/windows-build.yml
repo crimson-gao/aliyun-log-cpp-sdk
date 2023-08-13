@@ -31,16 +31,19 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: lukka/get-cmake@latest
-      # - uses: seanmiddleditch/gha-setup-ninja@master
-      - name: vcpkg build
-        uses: johnwason/vcpkg-action@v5
-        id: vcpkg
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@main
+        id: runvcpkg
         with:
-          pkgs: protobuf lz4 curl
-          triplet: ${{matrix.triplet}}
-          cache-key: ${{ matrix.os }}
-          revision: master
-          token: ${{ github.token }}
+          vcpkgDirectory: ${{ env.VCPKG_DIR }}
+          vcpkgGitCommitId: ${{ env.VCPKG_COMMIT }}
+          # vcpkgJsonGlob: 'vcpkg.json'
+      
+      - name: Install deps
+        run: |
+          vcpkg install --triplet ${{matrix.triplet}} protobuf lz4 curl
+          vcpkg integrate install
 
       - name: List $RUNNER_WORKSPACE before build
         run: find . | grep -v '\.git' | grep -v vcpkg | grep -v include
@@ -49,22 +52,28 @@ jobs:
       # if path has \ in it, use powershell
       - name: cmake configure
         env:
-          VCPKG_CONFIG: ${{ steps.vcpkg.outputs.vcpkg-cmake-config }}
+          TOOL_CHAIN_FILE: ${{ env.VCPKG_DIR }}/scripts/buildsystems/vcpkg.cmake
+        shell: pwsh
         run: |
-          echo ${{ env.VCPKG_CONFIG }}
-          cmake ${{ env.VCPKG_CONFIG }} -B build `
+          echo ${{env.TOOL_CHAIN_FILE}}
+          cmake -DCMAKE_TOOLCHAIN_FILE${{env.TOOL_CHAIN_FILE}} `
+                -DVCPKG_TARGET_TRIPLET=${{matrix.triplet}} `
+                -DVCPKG_MANIFEST_MODE=OFF `
+                -B build -DPUBLISH=ON `
                 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} `
                 -DBUILD_SAMPLE=ON -DBUILD_TESTS=ON `
-                -DVERBOSE=ON -DBUILD_SHARE_LIBS=ON -DPUBLISH=ON 
-        shell: pwsh
+                -DVERBOSE=ON -DBUILD_SHARE_LIBS=ON  
+        
 
       - name: build
         run: |
           cmake --build build --clean-first --config ${{env.BUILD_TYPE}}
 
       - name: install
+        env:
+          INSTALL_PREFIX: ${{github.workspace}}/aliyun-log-cpp-sdk/build
         run: |
-          cmake --install build --prefix ${{github.workspace}}/aliyun-log-cpp-sdk/build
+          cmake --install build --prefix ${{env.INSTALL_PREFIX}}
 
       - name: copy files
         run: cp -rf *.h *.cpp *.proto CMakeLists.txt Findlz4.cmake Makefile *.md aliyun-log-cpp-sdk/
