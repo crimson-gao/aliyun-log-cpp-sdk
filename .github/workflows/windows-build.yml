@@ -35,18 +35,20 @@ jobs:
 
 
     steps:
-      - name: echo env
+      - name: Show triplet
         run: |
             echo ${{matrix.triplet}}
         shell: bash
 
       - uses: actions/checkout@v3
+        name: Checkout
 
-      - name: List workspace before build
+      - name: Show workspace files
         run: find . | grep -v '\.git' | grep -v vcpkg | grep -v include
         shell: bash
 
       - uses: lukka/get-cmake@latest
+        name: Get cmake
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.3.1
       - name: Setup vcpkg
@@ -62,7 +64,7 @@ jobs:
           vcpkg integrate install
 
       # if path has \ in it, use powershell
-      - name: cmake configure
+      - name: Cmake configure
         env:
           TOOL_CHAIN_FILE: ${{ env.VCPKG_DIR }}/scripts/buildsystems/vcpkg.cmake
         shell: pwsh
@@ -79,11 +81,11 @@ jobs:
                 -DVERBOSE=ON -DBUILD_SHARE_LIBS=ON  
         
 
-      - name: build
+      - name: Build
         run: |
           cmake --build build --clean-first --config ${{env.BUILD_TYPE}}
 
-      - name: install
+      - name: Install
         run: |
           cmake --install build --prefix ${{github.workspace}}
       
@@ -96,7 +98,7 @@ jobs:
       #   shell: bash
       #   working-directory: ${{github.workspace}}/aliyun-log-cpp-sdk/build
 
-      - name: copy libs from system and repo
+      - name: Copy libs
         run: |
               mkdir -p ${{matrix.triplet}} 
                 mkdir -p ${{matrix.triplet}}/bin 
@@ -105,31 +107,29 @@ jobs:
                 cp ${{env.SYSTEM_LIB_DIR}}/lib/*.lib ./${{matrix.triplet}}/lib/
         working-directory:  ${{github.workspace}}/lib
 
-      - name: show installed files
+      - name: Show installed files
         run: |
             find lib
             find bin
             ls -l include
-
-      - run: mkdir -p release 
-        name: mkdir
-        shell: pwsh
+        shell: bash
 
       # - name: Set env
       #   run: echo "GITHUB_SHA_SHAORT=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
 
-      - name: Set env
+      - name: Set target file name
         run: echo "TARGET_FILE=release/${{matrix.triplet}}-latest.tar.gz" >> $env:GITHUB_ENV
-        shell: pwsh
+        shell: bash
 
-      - name: make release directory
+      - name: Copy files for release
         run: |
+            mkdir -p release
             mkdir -p aliyun-log-cpp-sdk
             cp -rf bin lib include cmake example test *.cpp *.h \
               *.md Makefile *.proto ./aliyun-log-cpp-sdk/
         shell: bash
-        
-      - name: Compress action step
+
+      - name: Compress
         uses: a7ul/tar-action@v1.1.0
         id: compress
         with:
@@ -139,11 +139,12 @@ jobs:
                 ./aliyun-log-cpp-sdk
           outPath: ${{env.TARGET_FILE}}
 
-      - name: cat tar file info
+      - name: Show release file
         run: |
           ls -l ${{env.TARGET_FILE}}
-          
-      - name: save as aritifact
+        shell: bash
+
+      - name: Save as aritifact
         uses: actions/upload-artifact@v2
         with:
           name: ${{matrix.triplet}}-latest-artifact
