@@ -121,7 +121,14 @@ jobs:
       - name: Set env
         run: echo "TARGET_FILE=release/${{matrix.triplet}}-latest.tar.gz" >> $env:GITHUB_ENV
         shell: pwsh
-      
+
+      - name: make release directory
+        run: |
+            mkdir -p aliyun-log-cpp-sdk
+            cp -rf bin lib include cmake example test *.cpp *.h \
+              *.md Makefile *.proto ./aliyun-log-cpp-sdk/
+        shell: bash
+        
       - name: Compress action step
         uses: a7ul/tar-action@v1.1.0
         id: compress
@@ -129,17 +136,7 @@ jobs:
           command: c
           cwd: ./
           files: |
-                bin
-                lib
-                include
-                cmake
-                example
-                test
-                *.cpp
-                *.h
-                *.md
-                Makefile
-                *.proto
+                ./aliyun-log-cpp-sdk
           outPath: ${{env.TARGET_FILE}}
 
       - name: cat tar file info
