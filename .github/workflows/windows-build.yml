@@ -101,10 +101,10 @@ jobs:
               mkdir -p ${{matrix.triplet}} 
                 mkdir -p ${{matrix.triplet}}/bin 
                 mkdir -p ${{matrix.triplet}}/lib
-                cp $SYSTEM_LIB_DIR/bin/*.dll ./${{matrix.triplet}}/bin/
-                cp $SYSTEM_LIB_DIR/lib/*.lib ./${{matrix.triplet}}/lib/
+                cp ${{env.SYSTEM_LIB_DIR}}/bin/*.dll ./${{matrix.triplet}}/bin/
+                cp ${{env.SYSTEM_LIB_DIR}}/lib/*.lib ./${{matrix.triplet}}/lib/
         working-directory:  ${{github.workspace}}/lib
-        
+
       - name: show installed files
         run: |
             find lib
@@ -129,7 +129,17 @@ jobs:
           command: c
           cwd: ./
           files: |
-              bin lib include cmake example test *.cpp *.h *.md Makefile *.proto
+                bin 
+                lib 
+                include 
+                cmake 
+                example 
+                test 
+                *.cpp 
+                *.h 
+                *.md 
+                Makefile 
+                *.proto
           outPath: ${{env.TARGET_FILE}}
 
       - name: cat tar file info
