@@ -129,16 +129,16 @@ jobs:
           command: c
           cwd: ./
           files: |
-                bin 
-                lib 
-                include 
-                cmake 
-                example 
-                test 
-                *.cpp 
-                *.h 
-                *.md 
-                Makefile 
+                bin
+                lib
+                include
+                cmake
+                example
+                test
+                *.cpp
+                *.h
+                *.md
+                Makefile
                 *.proto
           outPath: ${{env.TARGET_FILE}}
 
