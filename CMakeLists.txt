@@ -1,28 +1,22 @@
 cmake_minimum_required(VERSION 3.3)
 
-
-
 project(sls-sdk-cpp)
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Options
 option(BUILD_SHARED_LIBS  "Enable shared library" OFF)
 option(BUILD_SAMPLE "Build sample" OFF)
 option(BUILD_TESTS "Build unit and perfermence tests" OFF)
 option(VERBOSE "Verbose output" OFF)
-option(INSTALL_SAMPLE "install sample" OFF)
-option(INSTALL_PROTOBUF_HDRS "" OFF)
-option(INSTALL_CURL_HDRS "" OFF)
 option(GCC_BUILD_32 "" OFF)
 
-set(GCC_BUILD_32 ON)
 set(VERBOSE ON)
 set(BUILD_TESTS ON)
 set(BUILD_SAMPLE ON)
 
 
 # Variables
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(sls_sdk_lz4_dir "include/lz4")
 set(sls_sdk_rapidjson_dir "include/rapidjson")
 file(GLOB sls_sdk_srcs "*.cpp")
@@ -32,8 +26,6 @@ set(STATIC_LIB "${PROJECT_NAME}-static")
 set(SDK_ROOT ${CMAKE_SOURCE_DIR})
 set(SDK_CMAKE_DIR ${CMAKE_SOURCE_DIR}/cmake)
 set(PROTOS sls_logs.proto)
-
-
 
 # lib 
 set(proto_lib_name Protobuf)
@@ -50,13 +42,12 @@ include(ExternalProject)
 include(GNUInstallDirs)
 include(cmake/platform.cmake)
 include(cmake/build.cmake)
-
+include(cmake/install.cmake)
 
 # print debug info
 if(VERBOSE)
     # platform
     message("TARGET_OS: ${TARGET_OS}")
-    message("WLIB_TARGET: ${WLIB_TARGET}")
     # option
     message("BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
     message("BUILD_SAMPLE: ${BUILD_SAMPLE}")

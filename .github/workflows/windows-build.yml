@@ -10,6 +10,7 @@ jobs:
       VCPKG_DIR: ${{github.workspace}}/vcpkg
       VCPKG_COMMIT: 0fa8459cf3a7caca7adc58f992bc32ff13630684
       BUILD_TYPE: Release
+      SYSTEM_LIB_DIR: ${{github.workspace}}/vcpkg/installed/${{ matrix.triplet }}
       # Generator: Ninja
     
 
@@ -34,11 +35,20 @@ jobs:
 
 
     steps:
+      - name: echo env
+        run: |
+            echo ${{matrix.triplet}}
+        shell: bash
+
       - uses: actions/checkout@v3
+
+      - name: List workspace before build
+        run: find . | grep -v '\.git' | grep -v vcpkg | grep -v include
+        shell: bash
+
       - uses: lukka/get-cmake@latest
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.3.1
-
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@main
         id: runvcpkg
@@ -46,16 +56,11 @@ jobs:
           vcpkgDirectory: ${{ env.VCPKG_DIR }}
           vcpkgGitCommitId: ${{ env.VCPKG_COMMIT }}
           # vcpkgJsonGlob: 'vcpkg.json'
-      
       - name: Install deps
         run: |
           vcpkg install --triplet ${{matrix.triplet}} protobuf lz4 curl
           vcpkg integrate install
 
-      - name: List $RUNNER_WORKSPACE before build
-        run: find . | grep -v '\.git' | grep -v vcpkg | grep -v include
-        shell: bash
-      
       # if path has \ in it, use powershell
       - name: cmake configure
         env:
@@ -69,8 +74,6 @@ jobs:
                 -DVCPKG_TARGET_TRIPLET=${{matrix.triplet}} `
                 -DVCPKG_MANIFEST_MODE=OFF `
                 -B build -DINSTALL_SAMPLE=ON `
-                -DINSTALL_PROTOBUF_HDRS=ON `
-                -DINSTALL_CURL_HDRS=ON `
                 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} `
                 -DBUILD_SAMPLE=ON -DBUILD_TESTS=ON `
                 -DVERBOSE=ON -DBUILD_SHARE_LIBS=ON  
@@ -81,10 +84,8 @@ jobs:
           cmake --build build --clean-first --config ${{env.BUILD_TYPE}}
 
       - name: install
-        env:
-          INSTALL_PREFIX: ${{github.workspace}}/aliyun-log-cpp-sdk/build
         run: |
-          cmake --install build --prefix ${{env.INSTALL_PREFIX}}
+          cmake --install build --prefix ${{github.workspace}}
       
       # - name: test build standalone sample
       #   run:
@@ -95,30 +96,20 @@ jobs:
       #   shell: bash
       #   working-directory: ${{github.workspace}}/aliyun-log-cpp-sdk/build
 
-
-      - name: copy files
-        run: cp -rf *.h *.cpp *.proto CMakeLists.txt Findlz4.cmake Makefile *.md aliyun-log-cpp-sdk/
-        shell: bash
-
-      - name: show vcpkg struct
+      - name: copy libs from system and repo
         run: |
-          find .
-        working-directory: ${{ env.VCPKG_DIR }}/installed/${{ matrix.triplet }}
-        shell: bash
-          
-      # - name: copy libs from system and repo
-      #   run: |
-      #         mkdir -p third-party
-      #           cp $SYSTEM_LIB_DIR/liblz4.* ./third-party/
-      #           cp $SYSTEM_LIB_DIR/libprotobuf.* ./third-party/
-      #           cp $SYSTEM_LIB_DIR/libcurl* ./third-party/
-      #   working-directory:  ${{github.workspace}}/aliyun-log-cpp-sdk/build/lib
-
-
-      - name: List release dir
-        run: find .
-        shell: bash
-        working-directory: ${{github.workspace}}/aliyun-log-cpp-sdk
+              mkdir -p ${{matrix.triplet}} 
+                mkdir -p ${{matrix.triplet}}/bin 
+                mkdir -p ${{matrix.triplet}}/lib
+                cp $SYSTEM_LIB_DIR/bin/*.dll ./${{matrix.triplet}}/bin/
+                cp $SYSTEM_LIB_DIR/lib/*.lib ./${{matrix.triplet}}/lib/
+        working-directory:  ${{github.workspace}}/lib
+        
+      - name: show installed files
+        run: |
+            find lib
+            find bin
+            ls -l include
 
       - run: mkdir -p release 
         name: mkdir
@@ -128,7 +119,7 @@ jobs:
       #   run: echo "GITHUB_SHA_SHAORT=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
 
       - name: Set env
-        run: echo "TARGET_FILE=release/windows-x64-latest.tar.gz" >> $env:GITHUB_ENV
+        run: echo "TARGET_FILE=release/${{matrix.triplet}}-latest.tar.gz" >> $env:GITHUB_ENV
         shell: pwsh
       
       - name: Compress action step
@@ -138,7 +129,7 @@ jobs:
           command: c
           cwd: ./
           files: |
-            ./aliyun-log-cpp-sdk
+              bin lib include cmake example test *.cpp *.h *.md Makefile *.proto
           outPath: ${{env.TARGET_FILE}}
 
       - name: cat tar file info
@@ -148,6 +139,6 @@ jobs:
       - name: save as aritifact
         uses: actions/upload-artifact@v2
         with:
-          name: windows-x64-latest-artifact
+          name: ${{matrix.triplet}}-latest-artifact
           path: ${{env.TARGET_FILE}}
           retention-days: 7

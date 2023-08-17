@@ -55,34 +55,43 @@ if(BUILD_TESTS)
 endif()
 
 
-# ==== install ====
-# install static lib
-install(TARGETS ${STATIC_LIB}
-        ARCHIVE DESTINATION lib)
 
-# install headers
-install(FILES 
-        ${sls_sdk_headers} 
-        ${PROTO_HDRS}
-        DESTINATION include)
-install(DIRECTORY 
-        ${sls_sdk_rapidjson_dir} 
-        ${sls_sdk_lz4_dir}
-        DESTINATION include)
+# # shared lib
+
+# add_library(${SHARED_LIB} SHARED
+#             ${sls_sdk_srcs}
+#             ${PROTO_SRCS})
+
+# set_target_properties(${SHARED_LIB}
+#     PROPERTIES
+#     LINKER_LANGUAGE CXX
+#     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+#     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+#     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+# target_include_directories(${SHARED_LIB}
+#     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+#     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+#     PRIVATE ${CURL_INCLUDE_DIRS}
+#     PUBLIC ${PROTOBUF_INCLUDE_DIRS}
+#     PUBLIC ${PROTO_BINARY_DIR})
+
+# target_link_libraries(${SHARED_LIB} 
+#     PRIVATE CURL::libcurl
+#     PUBLIC lz4::lz4
+#     PUBLIC protobuf::libprotobuf)
 
 
-if (INSTALL_SAMPLE)
-    install(DIRECTORY ${SDK_ROOT}/example
-        DESTINATION .)
-endif()
+# # install shared lib
 
-if (INSTALL_PROTOBUF_HDRS)
-    install(DIRECTORY ${PROTOBUF_INCLUDE_DIRS}/google
-        DESTINATION include)
-endif()
+# install(TARGETS ${SHARED_LIB}
+#         RUNTIME DESTINATION lib
+#         LIBRARY DESTINATION lib
+#         ARCHIVE DESTINATION lib)
 
-if (INSTALL_CURL_HDRS)
-    install(DIRECTORY ${CURL_INCLUDE_DIRS}/curl
-        DESTINATION include)
-endif()
-
+# # if (WIN32 AND PUBLISH)
+# #     # shared dlls
+# #     install(FILES
+# #             $<TARGET_RUNTIME_DLLS:${SHARED_LIB}>
+# #             DESTINATION lib)
+# # endif()
