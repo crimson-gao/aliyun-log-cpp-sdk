@@ -1,4 +1,4 @@
-name: Windows
+name: win
 run-name: ${{ github.actor }}  is building by GitHub Actions 🚀
 on: [workflow_dispatch, push]
 
@@ -14,7 +14,7 @@ jobs:
       # Generator: Ninja
     
 
-    name: ${{ matrix.os }}-${{ github.workflow }}
+    name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -25,9 +25,11 @@ jobs:
         include:
           - os: windows-latest
             triplet: x64-windows
+            name: x64
             arch: x64
           - os: windows-latest
             triplet: x86-windows
+            name: x86
             arch: Win32
           # - os: ubuntu-latest
           #   triplet: x64-linux

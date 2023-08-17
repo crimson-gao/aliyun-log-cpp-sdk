@@ -1,4 +1,4 @@
-name: Ubuntu
+name: ubuntu
 run-name: ${{ github.actor }} is building on ubuntu by GitHub Actions 🚀
 on: [workflow_dispatch, push]
 
@@ -9,7 +9,7 @@ jobs:
       SYSTEM_LIB_DIR: /usr/lib/x86_64-linux-gnu
       TRIPLET: x64-ubuntu 
 
-    name: x64-ubuntu-${{github.workflow}}
+    name: x64
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
