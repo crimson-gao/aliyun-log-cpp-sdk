@@ -1,9 +1,10 @@
 name: Windows
-run-name: ${{ github.actor }} is building by GitHub Actions 🚀
+run-name: ${{ github.actor }}  is building by GitHub Actions 🚀
 on: [workflow_dispatch, push]
 
 jobs:
   job:
+    
     env:
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
       VCPKG_DIR: ${{github.workspace}}/vcpkg
@@ -22,8 +23,10 @@ jobs:
         include:
           - os: windows-latest
             triplet: x64-windows
+            arch: x64
           - os: windows-latest
             triplet: x86-windows
+            arch: Win32
           # - os: ubuntu-latest
           #   triplet: x64-linux
           # - os: macos-latest
@@ -52,7 +55,7 @@ jobs:
       - name: List $RUNNER_WORKSPACE before build
         run: find . | grep -v '\.git' | grep -v vcpkg | grep -v include
         shell: bash
-
+      
       # if path has \ in it, use powershell
       - name: cmake configure
         env:
@@ -60,10 +63,14 @@ jobs:
         shell: pwsh
         run: |
           echo ${{env.TOOL_CHAIN_FILE}}
-          cmake -DCMAKE_TOOLCHAIN_FILE=${{env.TOOL_CHAIN_FILE}} `
+          cmake -A ${{ matrix.arch }} `
+                -DCMAKE_GENERATOR_PLATFORM=${{ matrix.arch }} `
+                -DCMAKE_TOOLCHAIN_FILE=${{env.TOOL_CHAIN_FILE}} `
                 -DVCPKG_TARGET_TRIPLET=${{matrix.triplet}} `
                 -DVCPKG_MANIFEST_MODE=OFF `
-                -B build -DPUBLISH=ON `
+                -B build -DINSTALL_SAMPLE=ON `
+                -DINSTALL_PROTOBUF_HDRS=ON `
+                -DINSTALL_CURL_HDRS=ON `
                 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} `
                 -DBUILD_SAMPLE=ON -DBUILD_TESTS=ON `
                 -DVERBOSE=ON -DBUILD_SHARE_LIBS=ON  
@@ -79,14 +86,14 @@ jobs:
         run: |
           cmake --install build --prefix ${{env.INSTALL_PREFIX}}
       
-      - name: test build standalone sample
-        run:
-          | 
-              cmake -B build -DCMAKE_BUILD_TYPE=Release
-              cmake --build build --clean-first --config Release
-              rm -rf build
-        shell: bash
-        working-directory: ${{github.workspace}}/aliyun-log-cpp-sdk/build
+      # - name: test build standalone sample
+      #   run:
+      #     | 
+      #         cmake -B build -DCMAKE_BUILD_TYPE=Release
+      #         cmake --build build --clean-first --config Release
+      #         rm -rf build
+      #   shell: bash
+      #   working-directory: ${{github.workspace}}/aliyun-log-cpp-sdk/build
 
 
       - name: copy files

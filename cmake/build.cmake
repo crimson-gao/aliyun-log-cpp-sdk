@@ -2,7 +2,7 @@
 # private: lz4 curl
 # public: protobuf
 # find package ptotobuf / curl 
-find_package(${proto_lib_name} REQUIRED)
+find_package(Protobuf REQUIRED)
 find_package(CURL REQUIRED)
 include(${SDK_CMAKE_DIR}/Findlz4.cmake)
 if (NOT lz4_FOUND)
@@ -12,7 +12,6 @@ endif()
 # protobuf generate
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTOS})
 get_filename_component(PROTO_BINARY_DIR "${PROTO_HDRS}" PATH)
-
 
 # static lib
 add_library(${STATIC_LIB} STATIC
@@ -42,7 +41,8 @@ target_link_libraries(${STATIC_LIB}
 target_compile_options(${STATIC_LIB} 
                 PRIVATE "${SDK_COMPILER_FLAGS}")
 
-
+target_link_options(${STATIC_LIB} 
+                PRIVATE "${SDK_LINK_FLAGS}")
 
 # sample
 if(BUILD_SAMPLE)
@@ -53,7 +53,6 @@ endif()
 if(BUILD_TESTS)
 	add_subdirectory(${SDK_ROOT}/test)
 endif()
-
 
 
 # ==== install ====

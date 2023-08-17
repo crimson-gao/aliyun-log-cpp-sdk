@@ -29,7 +29,9 @@ jobs:
       - name: cmake configure
         run: |
           cmake -B build -DBUILD_SHARE_LIBS=ON -DVERBOSE=ON -DBUILD_SAMPLE=ON \
-              -DBUILD_TESTS=ON  -DPUBLISH=ON \
+              -DBUILD_TESTS=ON  -DINSTALL_SAMPLE=ON \
+              -DINSTALL_PROTOBUF_HDRS=ON \
+              -DINSTALL_CURL_HDRS=ON \
               -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: build
