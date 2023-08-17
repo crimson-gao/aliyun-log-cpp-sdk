@@ -22,6 +22,8 @@ jobs:
         include:
           - os: windows-latest
             triplet: x64-windows
+          - os: windows-latest
+            triplet: x86-windows
           # - os: ubuntu-latest
           #   triplet: x64-linux
           # - os: macos-latest
