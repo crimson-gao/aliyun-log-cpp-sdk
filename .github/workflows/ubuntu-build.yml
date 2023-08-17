@@ -61,9 +61,9 @@ jobs:
 
       - name: Show installed files
         run: |
-            find lib
-            find bin
-            ls -l include
+            ls -lshtrR lib
+            ls -lshtrR bin
+            ls -lshtr include
 
       # - name: Set env
       #   run: echo "GITHUB_SHA_SHAORT=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
@@ -94,7 +94,7 @@ jobs:
 
       - name: Show release file
         run: |
-          ls -l ${{env.TARGET_FILE}}
+          ls -lshtr ${{env.TARGET_FILE}}
 
       - name: Save as aritifact
         uses: actions/upload-artifact@v2

@@ -118,7 +118,7 @@ jobs:
       #   run: echo "GITHUB_SHA_SHAORT=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
 
       - name: Set target file name
-        run: echo "TARGET_FILE=release/${{matrix.triplet}}-latest.tar.gz" >> $env:GITHUB_ENV
+        run: echo "TARGET_FILE=release/${{matrix.triplet}}-latest.tar.gz" >> $GITHUB_ENV
         shell: bash
 
       - name: Copy files for release
@@ -138,8 +138,6 @@ jobs:
           outPath: ${{env.TARGET_FILE}}
           files: |
             ./aliyun-log-cpp-sdk
-
-          
 
       - name: Show release file
         run: |
