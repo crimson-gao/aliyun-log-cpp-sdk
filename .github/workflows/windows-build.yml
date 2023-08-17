@@ -135,9 +135,11 @@ jobs:
         with:
           command: c
           cwd: ./
-          files: |
-                ./aliyun-log-cpp-sdk
           outPath: ${{env.TARGET_FILE}}
+          files: |
+            ./aliyun-log-cpp-sdk
+
+          
 
       - name: Show release file
         run: |
